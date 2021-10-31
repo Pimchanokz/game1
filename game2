@@ -1,0 +1,345 @@
+#include<iostream>
+#include<conio.h>
+#include<dos.h> 
+#include <windows.h>
+#include <time.h>
+
+#define SCREEN_HEIGHT 40
+#define WIN_WIDTH 80
+
+//function
+using namespace std; 
+ 
+HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+COORD CursorPosition;
+
+void gotoxy(int x, int y){
+	CursorPosition.X = x;
+	CursorPosition.Y = y;
+	SetConsoleCursorPosition(console, CursorPosition);
+}
+
+void setcursor(bool visible, DWORD size) {
+	if(size == 0)
+		size = 20;	
+	
+	CONSOLE_CURSOR_INFO lpCursor;	
+	lpCursor.bVisible = visible;
+	lpCursor.dwSize = size;
+	SetConsoleCursorInfo(console,&lpCursor);
+}
+
+void setcolor(int fg,int bg)
+{
+ 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+ 	SetConsoleTextAttribute(hConsole, bg*16+fg);
+}
+
+//girl
+char girl[7][10] = {'ﾛ','ﾛ','ﾛ','ﾛ','ﾛ','ﾛ','ﾜ','ﾜ',' ',' ',
+    				' ','ﾛ','ﾛ','ﾛ','ﾛ','ﾛ','ﾛ','ﾛ','ﾛ',' ',
+    				' ','ﾛ','ﾛ',' ','ﾜ',' ','ﾜ',' ','ﾛ',' ',
+    				' ','ﾛ','ﾛ',' ','ﾟ',' ','ﾟ',' ','ﾛ',' ',
+    				' ','ﾟ','ﾟ','ﾛ','ﾛ','ﾟ','ﾛ','ﾛ','ﾟ',' ',
+   					' ','ﾜ','ﾛ','ﾛ','ﾛ','ﾜ','ﾛ','ﾛ','ﾛ','ﾜ',
+    				' ',' ',' ',' ','ﾛ',' ','ﾛ',' ',' ',' '};
+    				
+int girlPos = WIN_WIDTH/2;
+int score = 0;
+
+void drawgirl(){
+	setcolor(4,0);
+	for(int i=0; i<7; i++){
+		for(int j=0; j<10; j++){
+			gotoxy(j+girlPos, i+34); cout<<girl[i][j];
+		}
+	}
+}
+
+void erasegirl(){
+	for(int i=0; i<7; i++){
+		for(int j=0; j<10; j++){
+			gotoxy(j+girlPos, i+34); cout<<" ";
+		}
+	}
+}
+
+//wolf
+int wolfY[3];
+int wolfX[3];
+int wolfFlag[3];
+
+void genwolf(int ind){
+	wolfX[ind] = 4 + rand()%(WIN_WIDTH-7); }
+	
+void drawwolf(int ind)
+{
+	setcolor(8,0);
+ 	if( wolfFlag[ind] == true ){
+ 	gotoxy(wolfX[ind], wolfY[ind]); cout<<" ﾛﾜ ﾜﾛ ";
+    gotoxy(wolfX[ind], wolfY[ind]+1); cout<<"ﾜﾛﾟﾛﾟﾛﾜ";
+    gotoxy(wolfX[ind], wolfY[ind]+2); cout<<" ﾟﾛﾜﾛﾟ ";
+	}
+}
+
+void erasewolf(int ind)
+{
+ 	if( wolfFlag[ind] == true ){
+ 	gotoxy(wolfX[ind], wolfY[ind]); cout<<"       ";
+    gotoxy(wolfX[ind], wolfY[ind]+1); cout<<"       ";
+    gotoxy(wolfX[ind], wolfY[ind]+2); cout<<"       ";
+	}	
+}
+
+void resetwolf(int ind){
+	erasewolf(ind);
+	wolfY[ind] = 4;
+	genwolf(ind);
+}
+
+//apple
+int apples[20][4];
+int applesLife[20];
+int bIndex = 0;
+
+void genapple(){
+	apples[bIndex][0] = 34;
+	apples[bIndex][1] = girlPos+3;
+	bIndex++;
+	if( bIndex == 20)
+		bIndex = 0;
+}
+void moveapple(){
+	for(int i=0; i<20; i++){
+		if( apples[i][0] > 2 )
+			apples[i][0]--;
+		else
+			apples[i][0] = 0;
+	} 
+}
+void drawapples()
+{for(int i=0; i<20; i++){
+		if( apples[i][0] >= 1 ){
+			setcolor(2,0);
+ 			gotoxy(apples[i][1],apples[i][0]-3); cout<<" ﾜﾛ";
+ 			setcolor(4,0);
+ 			gotoxy(apples[i][1],apples[i][0]-2); cout<<"ﾛﾛﾛ";
+ 			gotoxy(apples[i][1],apples[i][0]-1); cout<<"ﾟﾟﾟ";
+		}
+	}
+	
+}
+
+void eraseapples()
+{for(int i=0; i<20; i++){
+		if( apples[i][0] >= 1 ){
+			gotoxy(apples[i][1],apples[i][0]-3); cout<<"   ";
+ 			gotoxy(apples[i][1],apples[i][0]-2); cout<<"   ";
+ 			gotoxy(apples[i][1],apples[i][0]-1); cout<<"   ";
+ 			
+ 			gotoxy(apples[i][3],apples[i][2]-3); cout<<"   ";
+ 			gotoxy(apples[i][3],apples[i][2]-2); cout<<"   ";
+ 			gotoxy(apples[i][3],apples[i][2]-1); cout<<"   ";
+		}
+	}
+}
+
+void eraseapple(int i){ 
+	gotoxy(apples[i][1],apples[i][0]-3); cout<<"   ";
+ 	gotoxy(apples[i][1],apples[i][0]-2); cout<<"   ";
+ 	gotoxy(apples[i][1],apples[i][0]-1); cout<<"   ";
+ 	
+ 	gotoxy(apples[i][3],apples[i][2]-3); cout<<"   ";
+	gotoxy(apples[i][3],apples[i][2]-2); cout<<"   ";
+ 	gotoxy(apples[i][3],apples[i][2]-1); cout<<"   ";
+}
+
+int appleHit(){
+	for(int i=0; i<20; i++){
+		for(int j=0; j<4; j+=2){
+			if( apples[i][j] != 0 ){
+				if( apples[i][j] >= wolfY[0] && apples[i][j] <= wolfY[0]+6 ){
+					if( apples[i][j+1] >= wolfX[0] && apples[i][j+1] <= wolfX[0]+7 ){
+						eraseapple(i);
+						apples[i][j] = 0;
+						resetwolf(0);
+						return 1;
+					}
+				}
+				if( apples[i][j] >= wolfY[1] && apples[i][j] <= wolfY[1]+6 ){
+					if( apples[i][j+1] >= wolfX[1] && apples[i][j+1] <= wolfX[1]+7 ){
+						eraseapple(i);
+						resetwolf(1); 
+						apples[i][j] = 0;
+						return 1;
+					}
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+//gold
+int goldY[3];
+int goldX[3];
+int goldFlag[3];
+
+void gengold(int s)
+{
+	goldX[s] = 3 + rand()%(WIN_WIDTH-10);
+	goldY[s] = 3 + rand()%(SCREEN_HEIGHT-10);
+}
+
+void drawgold(int ind)
+{
+ 	if( goldFlag[ind] == true ){
+ 	setcolor(2,0);
+ 	gotoxy(goldX[ind], goldY[ind]); cout<<" ﾜﾛ";
+ 	setcolor(6,0);
+    gotoxy(goldX[ind], goldY[ind]+1); cout<<"ﾛﾛﾛ";
+    gotoxy(goldX[ind], goldY[ind]+2); cout<<"ﾟﾟﾟ";
+}
+}
+
+void erasegold(int ind)
+{
+ 	if( goldFlag[ind] == true ){
+ 	gotoxy(goldX[ind], goldY[ind]); cout<<"   ";
+    gotoxy(goldX[ind], goldY[ind]+1); cout<<"   ";
+    gotoxy(goldX[ind], goldY[ind]+2); cout<<"   ";
+}
+}
+
+void resetgold(int ind){
+	erasegold(ind);
+	goldY[ind] = 4;
+	gengold(ind);
+}
+
+int appleHitgold(){
+	for(int i=0; i<20; i++){
+		for(int j=0; j<4; j+=2){
+			if( apples[i][j] != 0 ){
+				if( apples[i][j] >= goldY[0] && apples[i][j] <= goldY[0]+6 ){
+					if( apples[i][j+1] >= goldX[0] && apples[i][j+1] <= goldX[0]+7 ){
+						eraseapple(i);
+						apples[i][j] = 0;
+						resetgold(0);
+						return 1;
+					}
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+//game
+void gameover(){
+	system("cls");
+	setcolor(7,0);
+	cout<<endl;
+	cout<<"\t\t--------------------------"<<endl;
+	cout<<"\t\t-        Game Over       -"<<endl;
+	cout<<"\t\t--------------------------"<<endl<<endl;
+	//cout<<"\t\tPress any key to go back to game.";
+	getch();
+}
+
+void updateScore(){
+	setcolor(7,0);
+	gotoxy(WIN_WIDTH + 7, 2);cout<<"Score: "<<score<<endl;
+}
+
+void play(){
+	girlPos = -1 + WIN_WIDTH/2;
+	score = 0;
+	wolfFlag[0] = 1;  
+	wolfFlag[1] = 1;	
+	wolfX[0] > wolfX[1] +7;	
+	wolfY[0] = wolfY[1] = 4;
+	
+	goldFlag[0] = 1;
+	goldY[0] = 4;
+	
+	for(int i=0; i<20; i++){
+		apples[i][0] = apples[i][1] = 0; 
+	}
+	
+	system("cls");
+	genwolf(0);
+	genwolf(1); 
+	gengold(0);
+	updateScore();
+
+	gotoxy(10, 2);cout<<"Press any key to start";
+	getch();
+	gotoxy(10, 2);cout<<"                      ";
+	
+	while(1){
+		if(kbhit()){
+			char ch = getch();
+			if( ch=='a' || ch=='ｿ' ){
+				if( girlPos > 5 )
+					girlPos -= 5;
+			}
+			if( ch=='d' || ch=='｡' ){
+				if( girlPos < WIN_WIDTH-10 )
+					girlPos += 5;
+			}
+			if(ch==32 ){
+				genapple();
+			} 
+			if(ch=='x'|| ch=='ｻ' ){
+				break;
+			}
+		}
+		
+		drawgirl();
+		drawwolf(0);
+		drawwolf(1);
+		drawapples();
+		if (score >= 5 && score < 6) {
+			drawgold(0);
+		}
+		if( appleHit() == 1 ){
+			score++;
+			updateScore(); 
+		}
+		if( appleHitgold() == 1 ){
+			score = score + 5;
+			updateScore(); 
+		}
+		
+		Sleep(200);
+		erasegirl();
+		erasewolf(0);
+		erasewolf(1);
+		eraseapples();
+		moveapple();
+		
+		//movewolf
+		if( wolfFlag[0] == 1 )
+			wolfY[0] += 1;
+		if( wolfFlag[1] == 1 )
+			wolfY[1] += 1;
+		//wolftobottom
+		if( wolfY[0] > SCREEN_HEIGHT- 10 ){ 
+			gameover();
+		}
+		if( wolfY[1] > SCREEN_HEIGHT- 10 ){ 
+			gameover(); 
+		}
+	}
+}
+
+int main()
+{
+	setcursor(0,0); 
+	srand( (unsigned)time(NULL)); 
+	
+	play();
+	
+	return 0;
+}
